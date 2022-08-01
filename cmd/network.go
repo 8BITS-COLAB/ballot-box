@@ -5,6 +5,7 @@ Copyright © 2022 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -15,6 +16,7 @@ import (
 	"github.com/libp2p/go-libp2p"
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/peer"
+	"github.com/libp2p/go-libp2p/p2p/protocol/ping"
 	"github.com/multiformats/go-multiaddr"
 	"github.com/spf13/cobra"
 )
@@ -31,6 +33,8 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		var node host.Host
+		var p *peer.AddrInfo
+
 		listen := cmd.Flag("listen").Value.String()
 		connect := cmd.Flag("connect").Value.String()
 
@@ -43,10 +47,14 @@ to quickly create a Cobra application.`,
 
 			node, err = libp2p.New(
 				libp2p.ListenAddrStrings(fmt.Sprintf("/ip4/127.0.0.1/tcp/%d", port)),
+				libp2p.Ping(false),
 			)
 			if err != nil {
 				log.Fatalf("failed to create libp2p node: %s", err)
 			}
+
+			pingService := &ping.PingService{Host: node}
+			node.SetStreamHandler(ping.ID, pingService.PingHandler)
 
 			peerInfo := peer.AddrInfo{
 				ID:    node.ID(),
@@ -60,10 +68,14 @@ to quickly create a Cobra application.`,
 					log.Fatalf("invalid connect address: %s", addr)
 				}
 
-				_, err = peer.AddrInfoFromP2pAddr(addr)
+				p, err = peer.AddrInfoFromP2pAddr(addr)
 
 				if err != nil {
 					log.Fatalf("invalid connect address: %s", err)
+				}
+
+				if err := node.Connect(context.Background(), *p); err != nil {
+					log.Fatalf("failed to connect to %s: %s", p.ID, err)
 				}
 
 				fmt.Println("Connecting to:", addr)
@@ -72,11 +84,12 @@ to quickly create a Cobra application.`,
 			// print the node's listening addresses
 			addrs, err := peer.AddrInfoToP2pAddrs(&peerInfo)
 			if err != nil {
-				panic(err)
+				log.Fatalf("failed to convert peer.AddrInfo: %s", err)
 			}
 			fmt.Println("libp2p node address:", addrs[0])
 
 			ch := make(chan os.Signal, 1)
+
 			signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
 			<-ch
 			fmt.Println("Received signal, shutting down...")

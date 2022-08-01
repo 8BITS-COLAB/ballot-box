@@ -4,7 +4,6 @@ import (
 	"crypto/sha512"
 	"fmt"
 	"log"
-	"sort"
 	"strings"
 	"time"
 
@@ -45,7 +44,7 @@ func calculateHash(v Vote) string {
 	}
 }
 
-func New(candidateCode string) *Vote {
+func New(candidateCode, key string) *Vote {
 	var vtr voter.Voter
 	var cnd candidate.Candidate
 
@@ -58,7 +57,7 @@ func New(candidateCode string) *Vote {
 
 	pvkStr := k.PrivateKey
 
-	pvk := keystore.PrivateKeyFromString(pvkStr)
+	pvk := keystore.PrivateKeyFromString(pvkStr, key)
 
 	pbk := pvk.PublicKey
 	pemStr := keystore.PublicKeyToString(&pbk)
@@ -117,14 +116,10 @@ func Status() map[string]int {
 		result[vt.Candidate.Name] += 1
 	}
 
-	sort.Slice(vts, func(i, j int) bool {
-		return result[vts[i].Candidate.Name] > result[vts[j].Candidate.Name]
-	})
-
 	return result
 }
 
-func Integrity() interface{} {
+func CheckIntegrity(cb func(v Vote)) {
 	var vts []Vote
 
 	d, sql := db.New()
@@ -135,15 +130,15 @@ func Integrity() interface{} {
 
 	for i := 1; i < len(vts); i++ {
 		if vts[i].PrevHash != vts[i-1].Hash {
-			return fmt.Sprintf("the prev hash of vote %d is not equal to the hash of vote %d. expected: %s, actual: %s", i, i-1, vts[i-1].Hash, vts[i].PrevHash)
+			log.Fatalf("invalid vote chain from %d to %d", i-1, i)
 		}
 
 		hash := calculateHash(vts[i])
 
 		if hash != vts[i].Hash {
-			return fmt.Sprintf("the hash of vote %d is not equal to the hash of vote %d. expected: %s, actual: %s", i, i, hash, vts[i].Hash)
+			log.Fatalf("invalid vote hash for vote %d", vts[i].Index)
 		}
-	}
 
-	return "the chain has integrity"
+		cb(vts[i])
+	}
 }

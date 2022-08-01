@@ -14,15 +14,14 @@ type Voter struct {
 	Registry  string `json:"registry" gorm:"uniqueIndex"`
 }
 
-func New(registry string) *Voter {
-	k := keystore.New()
+func New(registry string, key string) *Voter {
+	k := keystore.New(key)
 
-	pvk := keystore.PrivateKeyFromString(k.PrivateKey)
-	pbk := pvk.PublicKey
-	pemStr := keystore.PublicKeyToString(&pbk)
+	pvk := keystore.PrivateKeyFromString(k.PrivateKey, key)
+	pemStr := keystore.PublicKeyToString(&pvk.PublicKey)
 
 	v := Voter{
-		Address:   fmt.Sprintf("0x%x", pbk.N.Bytes()[:20]),
+		Address:   fmt.Sprintf("%x", pvk.PublicKey.N.Bytes()[:20]),
 		PublicKey: pemStr,
 		Registry:  registry,
 	}
@@ -39,10 +38,10 @@ func New(registry string) *Voter {
 	return &v
 }
 
-func Show() *Voter {
+func Show(key string) *Voter {
 	k := keystore.Show()
 
-	pvk := keystore.PrivateKeyFromString(k.PrivateKey)
+	pvk := keystore.PrivateKeyFromString(k.PrivateKey, key)
 	pbk := pvk.PublicKey
 	pemStr := keystore.PublicKeyToString(&pbk)
 

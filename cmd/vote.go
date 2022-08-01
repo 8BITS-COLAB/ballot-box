@@ -23,29 +23,22 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		code := cmd.Flag("code").Value.String()
+		key := cmd.Flag("key").Value.String()
 		status := cmd.Flag("status").Value.String()
-		integrity := cmd.Flag("integrity").Value.String()
 
 		if code != "" {
-			v := vote.New(code)
+			v := vote.New(code, key)
 
-			fmt.Println(v)
+			fmt.Printf("vote %d added\n", v.Index)
 		}
 
 		if status == "true" {
 			vts := vote.Status()
 
 			for key, value := range vts {
-				fmt.Printf("%s: %d\n", key, value)
+				fmt.Printf("Candidate %s have %d votes\n", key, value)
 			}
 		}
-
-		if integrity == "true" {
-			v := vote.Integrity()
-
-			fmt.Println(v)
-		}
-
 	},
 }
 
@@ -58,7 +51,7 @@ func init() {
 	// and all subcommands, e.g.:
 	voteCmd.PersistentFlags().StringP("code", "c", "", "candidate code")
 	voteCmd.PersistentFlags().BoolP("status", "s", false, "votes status")
-	voteCmd.PersistentFlags().BoolP("integrity", "i", false, "integrity")
+	voteCmd.PersistentFlags().StringP("key", "k", "", "voter key")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
