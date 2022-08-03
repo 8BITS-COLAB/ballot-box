@@ -116,7 +116,7 @@ func Listen(port string) {
 					return
 				}
 
-				v := vote.New(body["code"], "xxx")
+				v := vote.New(body["pvk"], body["code"], "xxx")
 
 				jason, _ := sonic.Marshal(v)
 

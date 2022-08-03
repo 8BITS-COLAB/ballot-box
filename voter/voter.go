@@ -14,10 +14,10 @@ type Voter struct {
 	Registry  string `json:"registry" gorm:"uniqueIndex"`
 }
 
-func New(registry string, key string) *Voter {
-	k := keystore.New(key)
+func New(registry string, sk string) (*Voter, *keystore.KeyStore) {
+	k := keystore.New(sk)
 
-	pvk := keystore.PrivateKeyFromString(k.PrivateKey, key)
+	pvk := keystore.PrivateKeyFromString(k.PrivateKey, sk)
 	pemStr := keystore.PublicKeyToString(&pvk.PublicKey)
 
 	v := Voter{
@@ -35,13 +35,11 @@ func New(registry string, key string) *Voter {
 		log.Fatalf("failed to create voter: %s", err)
 	}
 
-	return &v
+	return &v, k
 }
 
-func Show(key string) *Voter {
-	k := keystore.Show()
-
-	pvk := keystore.PrivateKeyFromString(k.PrivateKey, key)
+func Show(pvkStr, sk string) *Voter {
+	pvk := keystore.PrivateKeyFromString(pvkStr, sk)
 	pbk := pvk.PublicKey
 	pemStr := keystore.PublicKeyToString(&pbk)
 

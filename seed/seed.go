@@ -1,8 +1,8 @@
-package main
+package seed
 
 import "github.com/8BITS-COLAB/ballot-box/candidate"
 
-func main() {
+func Up() {
 	candidates := []candidate.Candidate{
 		{
 			Name:  "John Doe",

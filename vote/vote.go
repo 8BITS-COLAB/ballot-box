@@ -44,7 +44,7 @@ func calculateHash(v Vote) string {
 	}
 }
 
-func New(candidateCode, key string) *Vote {
+func New(pvkStr, candidateCode, sk string) *Vote {
 	var vtr voter.Voter
 	var cnd candidate.Candidate
 
@@ -53,11 +53,7 @@ func New(candidateCode, key string) *Vote {
 
 	defer sql.Close()
 
-	k := keystore.Show()
-
-	pvkStr := k.PrivateKey
-
-	pvk := keystore.PrivateKeyFromString(pvkStr, key)
+	pvk := keystore.PrivateKeyFromString(pvkStr, sk)
 
 	pbk := pvk.PublicKey
 	pemStr := keystore.PublicKeyToString(&pbk)
