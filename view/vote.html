@@ -22,9 +22,30 @@
   <div class="container">
     <div class="form" id="vote">
       <section id="candidate"></section>
-      <button id="vote-btn">
+      <button id="modal-btn">
         Vote
       </button>
+    </div>
+
+    <div id="modal" class="modal">
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <br />
+        <div class="container">
+          <label for="private-key">
+            Private key:
+            <input type="text" id="private-key">
+          </label>
+          <label for="secret-key">
+            Secret key:
+            <input type="text" id="secret-key">
+          </label>
+
+          <button id="vote-btn">
+            Vote
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 </body>
@@ -51,6 +72,56 @@
     candidateEl.appendChild(party);
     candidateEl.appendChild(code);
 
+    const modalBtn = document.getElementById("modal-btn");
+    modalBtn.addEventListener("click", async () => {
+      const modalEl = document.getElementById("modal");
+      const spanEl = document.getElementsByClassName("close")[0];
+
+      modalEl.style.display = "block";
+
+      spanEl.addEventListener("click", () => {
+        modalEl.style.display = "none";
+      });
+
+      window.addEventListener("click", (event) => {
+        if (event.target == modalEl) {
+          modalEl.style.display = "none";
+        }
+      })
+
+      const voteBtn = document.getElementById("vote-btn");
+
+      voteBtn.addEventListener("click", async () => {
+        const privateKey = document.getElementById("private-key").value;
+        const secretKey = document.getElementById("secret-key").value;
+
+        if (!privateKey) {
+          alert("Please enter your private key");
+          return;
+        }
+
+        if (!secretKey) {
+          alert("Please enter your secret key");
+          return;
+        }
+
+        const response = await fetch("/api/votes", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            'X-Voter-Private-Key': privateKey,
+            'X-Voter-Secret-Key': secretKey,
+          },
+          body: JSON.stringify({
+            candidate_code: candidateCode
+          })
+        });
+
+        const vote = await response.json();
+
+        modalEl.style.display = "none";
+      });
+    });
   })
 </script>
 <style>
@@ -81,15 +152,71 @@
     color: gray;
   }
 
-
-
   #code::before {
     content: "Code: ";
     color: gray;
   }
 
-  #vote-btn {
+  #modal-btn {
     margin-top: 20px;
+    width: 300px;
+  }
+
+  .modal {
+    display: none;
+    /* Hidden by default */
+    position: fixed;
+    /* Stay in place */
+    z-index: 1;
+    /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%;
+    /* Full width */
+    height: 100%;
+    /* Full height */
+    overflow: auto;
+    /* Enable scroll if needed */
+    background-color: rgb(0, 0, 0);
+    /* Fallback color */
+    background-color: rgba(0, 0, 0, 0.4);
+    animation: fade 400ms ease-in-out;
+    /* Black w/ opacity */
+  }
+
+  /* Modal Content/Box */
+  .modal-content {
+    background-color: #fefefe;
+    margin: 15% auto;
+    /* 15% from the top and centered */
+    padding: 20px;
+    border: 1px solid #888;
+    width: 300px;
+    height: 250px;
+    /* Could be more or less, depending on screen size */
+  }
+
+  /* The Close Button */
+  .close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+  }
+
+  .close:hover,
+  .close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .container label {
+    margin: 4px 0;
+  }
+
+  #vote-btn {
+    margin-top: 30px;
     width: 300px;
   }
 </style>

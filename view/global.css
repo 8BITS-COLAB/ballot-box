@@ -21,7 +21,7 @@ h1 {
 a {
   text-decoration: none;
   color: var(--primary-color);
-  animation: fade 1s ease-in-out;
+  animation: fade 400ms ease-in-out;
 }
 
 a:hover {
@@ -36,6 +36,7 @@ p.subtitle {
 
 div.container {
   margin-top: 20px;
+  animation: fade 400ms ease-in-out;
 }
 
 label {

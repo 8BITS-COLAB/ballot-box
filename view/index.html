@@ -32,15 +32,13 @@
 
 <script>
   document.addEventListener("DOMContentLoaded", async () => {
-    let response = await fetch("/api/candidates", {
+    const cResponse = await fetch("/api/candidates", {
       headers: {
         "Content-Type": "application/json",
       }
     });
 
-    const candidates = await response.json();
-
-
+    const candidates = await cResponse.json();
 
     const candidatesEl = document.querySelector("#candidates");
 
@@ -56,8 +54,9 @@
       candidatesEl.appendChild(li);
     });
 
-    response = await fetch("/api/peers");
-    const peers = await response.json();
+    const pResponse = await fetch("/api/peers");
+    const peers = await pResponse.json();
+
 
     const peersEl = document.querySelector("#online-peers");
     peersEl.innerText = `${peers.length} peers online`;

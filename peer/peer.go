@@ -70,12 +70,11 @@ func Listen(port string) {
 	// 		}(conn)
 	// 	}
 	// }()
+	// var cs []candidate.Candidate
 
-	var cs []candidate.Candidate
-
-	if err := d.Find(&cs).Error; err != nil {
-		log.Fatalf("failed to find candidates: %v", err)
-	}
+	// if err := d.Find(&cs).Error; err != nil {
+	// 	log.Fatalf("failed to find candidates: %v", err)
+	// }
 
 	go func() {
 		fs := http.FileServer(http.Dir("view"))
@@ -83,7 +82,7 @@ func Listen(port string) {
 		http.Handle("/", fs)
 
 		http.HandleFunc("/api/peers/", func(w http.ResponseWriter, r *http.Request) {
-			if r.Method != http.MethodGet {
+			if r.Method == http.MethodGet {
 				var ps []Peer
 
 				if err := d.Find(&ps).Error; err != nil {
@@ -134,7 +133,7 @@ func Listen(port string) {
 			}
 		})
 
-		http.HandleFunc("/api/status", func(w http.ResponseWriter, r *http.Request) {
+		http.HandleFunc("/api/status/", func(w http.ResponseWriter, r *http.Request) {
 			s := vote.Status()
 
 			jason, _ := sonic.Marshal(s)
@@ -148,12 +147,20 @@ func Listen(port string) {
 			if r.Method == http.MethodPost {
 				var body map[string]string
 
+				pvk := r.Header.Get("X-Voter-Private-Key")
+				sk := r.Header.Get("X-Voter-Secret-Key")
+
+				if pvk == "" || sk == "" {
+					w.WriteHeader(http.StatusBadRequest)
+					return
+				}
+
 				if err := sonic.ConfigDefault.NewDecoder(r.Body).Decode(&body); err != nil {
 					w.WriteHeader(http.StatusBadRequest)
 					return
 				}
 
-				v, err := vote.New(body["pvk"], body["code"], "xxx")
+				v, err := vote.New(pvk, body["candidate_code"], sk)
 
 				if err != nil {
 					w.WriteHeader(http.StatusBadRequest)
@@ -167,7 +174,7 @@ func Listen(port string) {
 			}
 		})
 
-		http.HandleFunc("/api/login", func(w http.ResponseWriter, r *http.Request) {
+		http.HandleFunc("/api/login/", func(w http.ResponseWriter, r *http.Request) {
 			if r.Method == http.MethodPost {
 				var body map[string]string
 
