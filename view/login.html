@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="global.css">
+  <title>Login</title>
+</head>
+
+<body>
+  <h1>Login</h1>
+  <p class="subtitle">
+    To use platform you need to login with you private key.
+  </p>
+
+  <div class="container">
+    <div class="form" id="login">
+      <label for="private-key">
+        Private key:
+        <input type="text" id="private-key">
+      </label>
+      <label for="secret-key">
+        Secret key:
+        <input type="text" id="secret-key">
+      </label>
+
+      <button id="login-btn">
+        Login
+      </button>
+    </div>
+  </div>
+</body>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const loginBtn = document.querySelector("#login-btn");
+
+    loginBtn.addEventListener("click", async () => {
+      const privateKey = document.querySelector("#private-key");
+      const secretKey = document.querySelector("#secret-key");
+
+      if (!privateKey.value) {
+        alert("Please enter your private key");
+        return;
+      }
+
+      if (!secretKey.value) {
+        alert("Please enter your secret key");
+        return;
+      }
+
+      const response = await fetch("/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          private_key: privateKey.value,
+          secret_key: secretKey.value
+        })
+      });
+
+
+      const data = await response.json();
+
+      console.log(data);
+    })
+
+
+  })
+</script>
+
+<style>
+  #login label {
+    margin: 2px 0;
+  }
+
+  #login input,
+  button {
+    width: 300px;
+  }
+
+  #login button {
+    margin-top: 30px;
+  }
+</style>
+
+</html>

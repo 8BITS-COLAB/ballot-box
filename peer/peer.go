@@ -7,11 +7,13 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 
 	"github.com/8BITS-COLAB/ballot-box/candidate"
 	"github.com/8BITS-COLAB/ballot-box/db"
 	"github.com/8BITS-COLAB/ballot-box/vote"
+	"github.com/8BITS-COLAB/ballot-box/voter"
 	"github.com/bytedance/sonic"
 )
 
@@ -80,8 +82,26 @@ func Listen(port string) {
 
 		http.Handle("/", fs)
 
-		http.HandleFunc("/api/candidates", func(w http.ResponseWriter, r *http.Request) {
+		http.HandleFunc("/api/candidates/", func(w http.ResponseWriter, r *http.Request) {
 			if r.Method == http.MethodGet {
+				code := strings.TrimPrefix(r.URL.Path, "/api/candidates/")
+
+				if code != "" {
+					c, err := candidate.GetByCode(code)
+
+					if err != nil {
+						w.WriteHeader(http.StatusInternalServerError)
+						return
+					}
+
+					jason, _ := sonic.Marshal(c)
+
+					w.Header().Set("Content-Type", "application/json")
+					w.WriteHeader(http.StatusOK)
+					w.Write(jason)
+					return
+				}
+
 				var cs []candidate.Candidate
 
 				if err := d.Find(&cs).Error; err != nil {
@@ -116,11 +136,42 @@ func Listen(port string) {
 					return
 				}
 
-				v := vote.New(body["pvk"], body["code"], "xxx")
+				v, err := vote.New(body["pvk"], body["code"], "xxx")
+
+				if err != nil {
+					w.WriteHeader(http.StatusBadRequest)
+					return
+				}
 
 				jason, _ := sonic.Marshal(v)
 
 				w.WriteHeader(http.StatusCreated)
+				w.Write(jason)
+			}
+		})
+
+		http.HandleFunc("/api/login", func(w http.ResponseWriter, r *http.Request) {
+			if r.Method == http.MethodPost {
+				var body map[string]string
+
+				if err := sonic.ConfigDefault.NewDecoder(r.Body).Decode(&body); err != nil {
+					w.WriteHeader(http.StatusBadRequest)
+					return
+				}
+
+				pvk := body["private_key"]
+				sk := body["secret_key"]
+
+				v, err := voter.Show(pvk, sk)
+
+				if err != nil {
+					w.WriteHeader(http.StatusInternalServerError)
+					return
+				}
+
+				jason, _ := sonic.Marshal(v)
+
+				w.WriteHeader(http.StatusOK)
 				w.Write(jason)
 			}
 		})

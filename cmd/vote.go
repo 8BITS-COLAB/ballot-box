@@ -6,6 +6,7 @@ package cmd
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/8BITS-COLAB/ballot-box/vote"
 	"github.com/spf13/cobra"
@@ -28,7 +29,11 @@ to quickly create a Cobra application.`,
 		pvk := cmd.Flag("private-key").Value.String()
 
 		if code != "" {
-			v := vote.New(pvk, code, sk)
+			v, err := vote.New(pvk, code, sk)
+
+			if err != nil {
+				log.Fatalf("failed to create vote: %s", err)
+			}
 
 			fmt.Printf("vote %d added\n", v.Index)
 		}

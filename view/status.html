@@ -5,7 +5,8 @@
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=s, initial-scale=1.0">
-  <title>Document</title>
+  <link rel="stylesheet" href="global.css">
+  <title>Status</title>
 </head>
 
 <body>
@@ -13,8 +14,13 @@
     Home
   </a>
   <h1>Status</h1>
+  <p class="subtitle">
+    Here you see the status of the candidates.
+  </p>
 
-  <ul id="candidates"></ul>
+  <div class="container">
+    <ul id="candidates"></ul>
+  </div>
 </body>
 
 <script>
@@ -24,47 +30,32 @@
 
 
     const candidatesEl = document.querySelector("#candidates")
-    Object.keys(status).forEach(key => {
+    const keys = Object.keys(status)
+
+    console.log(keys);
+
+    if (!keys.length) {
       const li = document.createElement("li");
-      li.innerText = `${key} has ${status[key]} votes`;
+      li.innerText = "No votes yet";
       li.classList.add("candidate");
       candidatesEl.appendChild(li);
-    })
+    }
+    else {
+      keys.forEach(key => {
+        const li = document.createElement("li");
+        li.innerText = `${key} has ${status[key]} votes`;
+        li.classList.add("candidate");
+        candidatesEl.appendChild(li);
+      })
+    }
+
+
   })
 </script>
+
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap');
-
-  * {
-    font-family: 'Poppins', sans-serif;
-  }
-
-  body {
-    padding: 20px;
-  }
-
-  a {
-    text-decoration: none;
-    color: #7159c1;
-    animation: fade 1s ease-in-out;
-  }
-
-  a:hover {
-    text-decoration: underline;
-  }
-
   .candidate {
     animation: fade 500ms ease-in-out;
-  }
-
-  @keyframes fade {
-    from {
-      opacity: 0;
-    }
-
-    to {
-      opacity: 1;
-    }
   }
 </style>
 

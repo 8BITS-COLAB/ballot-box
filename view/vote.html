@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="global.css">
+  <title>Vote</title>
+</head>
+
+<body>
+  <a href="index.html">
+    Home
+  </a>
+  <h1>Vote</h1>
+  <p class="subtitle">
+    Please, confirm if you want to vote for this candidate. if you want to vote for another candidate, please, go to the
+    home page.
+  </p>
+
+  <div class="container">
+    <div class="form" id="vote">
+      <section id="candidate"></section>
+      <button id="vote-btn">
+        Vote
+      </button>
+    </div>
+  </div>
+</body>
+<script>
+  document.addEventListener("DOMContentLoaded", async () => {
+    const candidateCode = window.location.search.split("=")[1];
+
+    const response = await fetch(`/api/candidates/${candidateCode}`);
+    const candidate = await response.json();
+
+    const candidateEl = document.getElementById("candidate");
+    const name = document.createElement("h2");
+    name.innerText = candidate.name;
+    name.id = "name";
+    const party = document.createElement("p");
+    party.innerText = candidate.party;
+    party.id = "party";
+    const code = document.createElement("p");
+    code.innerText = candidate.code;
+    code.id = "code";
+
+
+    candidateEl.appendChild(name);
+    candidateEl.appendChild(party);
+    candidateEl.appendChild(code);
+
+  })
+</script>
+<style>
+  #candidate {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center
+  }
+
+  #name {
+    font-size: 1.2em;
+    font-weight: bold;
+  }
+
+  #name::before {
+    content: "Name: ";
+    color: gray;
+  }
+
+  #party,
+  #code {
+    font-size: 0.8em;
+  }
+
+  #party::before {
+    content: "Party: ";
+    color: gray;
+  }
+
+
+
+  #code::before {
+    content: "Code: ";
+    color: gray;
+  }
+
+  #vote-btn {
+    margin-top: 20px;
+    width: 300px;
+  }
+</style>
+
+</html>

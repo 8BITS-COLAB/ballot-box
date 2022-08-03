@@ -52,3 +52,16 @@ func All() []Candidate {
 
 	return cs
 }
+
+func GetByCode(code string) (*Candidate, error) {
+	var c Candidate
+
+	d, sql := db.New()
+	defer sql.Close()
+
+	if err := d.Where("code = ?", code).First(&c).Error; err != nil {
+		return nil, err
+	}
+
+	return &c, nil
+}

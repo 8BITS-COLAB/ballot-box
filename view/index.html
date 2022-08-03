@@ -1,10 +1,12 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 
 <head>
-  <meta charset="utf-8">
-  <title>A static page</title>
-  <link rel="stylesheet" href="/stylesheets/main.css">
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="global.css">
+  <title>Home</title>
 </head>
 
 <body>
@@ -12,14 +14,24 @@
     See the status of the candidates
   </a>
 
-  <h1>Candidates</h1>
 
-  <ul id="candidates"></ul>
+  <h1>Candidates</h1>
+  <p class="subtitle">
+    Here you can see all the candidates.
+  </p>
+
+  <div class="container">
+    <ul id="candidates"></ul>
+  </div>
 </body>
 
 <script>
   document.addEventListener("DOMContentLoaded", async () => {
-    const response = await fetch("/api/candidates");
+    const response = await fetch("/api/candidates", {
+      headers: {
+        "Content-Type": "application/json",
+      }
+    });
 
     const candidates = await response.json();
 
@@ -29,32 +41,17 @@
       const li = document.createElement("li");
       li.innerText = `${candidate.name} - ${candidate.party}`;
       li.classList.add("candidate");
+
+      li.addEventListener("click", () => {
+        window.location.href = `vote.html?code=${candidate.code}`;
+      })
+
       candidatesEl.appendChild(li);
     });
   })
 </script>
 
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap');
-
-  * {
-    font-family: 'Poppins', sans-serif;
-  }
-
-  body {
-    padding: 20px;
-  }
-
-  a {
-    text-decoration: none;
-    color: #7159c1;
-    animation: fade 1s ease-in-out;
-  }
-
-  a:hover {
-    text-decoration: underline;
-  }
-
   #candidates {
     list-style: none;
     padding: 0;
@@ -78,16 +75,6 @@
 
   .candidate:hover {
     box-shadow: 0 0 10px lightgray;
-  }
-
-  @keyframes fade {
-    from {
-      opacity: 0;
-    }
-
-    to {
-      opacity: 1;
-    }
   }
 </style>
 

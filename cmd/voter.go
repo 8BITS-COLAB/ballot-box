@@ -6,6 +6,7 @@ package cmd
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/8BITS-COLAB/ballot-box/voter"
 	"github.com/spf13/cobra"
@@ -33,13 +34,21 @@ to quickly create a Cobra application.`,
 		}
 
 		if address == "true" {
-			v := voter.Show(pvk, sk)
+			v, err := voter.Show(pvk, sk)
+
+			if err != nil {
+				log.Fatalf("failed to show voter: %s", err)
+			}
 
 			fmt.Printf("Address: %s\n", v.Address)
 		}
 
 		if registry == "true" {
-			v := voter.Show(pvk, sk)
+			v, err := voter.Show(pvk, sk)
+
+			if err != nil {
+				log.Fatalf("failed to show voter: %s", err)
+			}
 
 			fmt.Printf("Registry: %s\n", v.Registry)
 		}

@@ -37,7 +37,12 @@ func Run() {
 	i, _ := rand.Int(rand.Reader, big.NewInt(1000000))
 	r := fmt.Sprintf("%d", i)
 	k := "123456"
-	v, ks := voter.New(r, k)
+	v, ks, err := voter.New(r, k)
+
+	if err != nil {
+		log.Fatalf("failed to create voter: %s", err)
+	}
+
 	fmt.Printf("Voter created:\n- registry: %s\n- address: %s\n- secret key: %s\n- private key: %s\n", v.Registry, v.Address, k, ks.PrivateKey)
 	fmt.Println("Creating voter...done")
 	fmt.Println()

@@ -14,10 +14,19 @@ type Voter struct {
 	Registry  string `json:"registry" gorm:"uniqueIndex"`
 }
 
-func New(registry string, sk string) (*Voter, *keystore.KeyStore) {
-	k := keystore.New(sk)
+func New(registry string, sk string) (*Voter, *keystore.KeyStore, error) {
+	k, err := keystore.New(sk)
 
-	pvk := keystore.PrivateKeyFromString(k.PrivateKey, sk)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	pvk, err := keystore.PrivateKeyFromString(k.PrivateKey, sk)
+
+	if err != nil {
+		return nil, nil, err
+	}
+
 	pemStr := keystore.PublicKeyToString(&pvk.PublicKey)
 
 	v := Voter{
@@ -35,11 +44,16 @@ func New(registry string, sk string) (*Voter, *keystore.KeyStore) {
 		log.Fatalf("failed to create voter: %s", err)
 	}
 
-	return &v, k
+	return &v, k, nil
 }
 
-func Show(pvkStr, sk string) *Voter {
-	pvk := keystore.PrivateKeyFromString(pvkStr, sk)
+func Show(pvkStr, sk string) (*Voter, error) {
+	pvk, err := keystore.PrivateKeyFromString(pvkStr, sk)
+
+	if err != nil {
+		return nil, err
+	}
+
 	pbk := pvk.PublicKey
 	pemStr := keystore.PublicKeyToString(&pbk)
 
@@ -49,9 +63,9 @@ func Show(pvkStr, sk string) *Voter {
 	defer sql.Close()
 
 	if err := d.Where("public_key = ?", pemStr).First(&v).Error; err != nil {
-		log.Fatalf("failed to get voter: %s", err)
+		return nil, err
 	}
 
-	return &v
+	return &v, nil
 
 }

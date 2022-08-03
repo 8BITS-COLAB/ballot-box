@@ -2,6 +2,7 @@ package vote
 
 import (
 	"crypto/sha512"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -44,7 +45,7 @@ func calculateHash(v Vote) string {
 	}
 }
 
-func New(pvkStr, candidateCode, sk string) *Vote {
+func New(pvkStr, candidateCode, sk string) (*Vote, error) {
 	var vtr voter.Voter
 	var cnd candidate.Candidate
 
@@ -53,17 +54,21 @@ func New(pvkStr, candidateCode, sk string) *Vote {
 
 	defer sql.Close()
 
-	pvk := keystore.PrivateKeyFromString(pvkStr, sk)
+	pvk, err := keystore.PrivateKeyFromString(pvkStr, sk)
+
+	if err != nil {
+		return nil, err
+	}
 
 	pbk := pvk.PublicKey
 	pemStr := keystore.PublicKeyToString(&pbk)
 
 	if err := d.Where("public_key = ?", pemStr).First(&vtr).Error; err != nil {
-		log.Fatalf("failed to get voter: %s", err)
+		return nil, err
 	}
 
 	if err := d.Where("code = ?", candidateCode).First(&cnd).Error; err != nil {
-		log.Fatalf("failed to get candidate: %s", err)
+		return nil, err
 	}
 
 	var lv, v Vote
@@ -71,7 +76,7 @@ func New(pvkStr, candidateCode, sk string) *Vote {
 	d.Where("voter_address = ? AND year = ?", vtr.Address, time.Now().Year()).First(&v)
 
 	if v.VoterAddress != "" {
-		log.Fatalf("voter already voted")
+		return nil, errors.New("already voted")
 	}
 
 	d.Order("index desc").First(&lv)
@@ -91,10 +96,10 @@ func New(pvkStr, candidateCode, sk string) *Vote {
 	// v.Data = v
 
 	if err := d.Create(&v).Error; err != nil {
-		log.Fatalf("failed to create vote: %s", err)
+		return nil, err
 	}
 
-	return &v
+	return &v, nil
 }
 
 func Status() map[string]int {

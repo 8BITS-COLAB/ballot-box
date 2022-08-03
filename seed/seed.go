@@ -1,28 +1,23 @@
 package seed
 
-import "github.com/8BITS-COLAB/ballot-box/candidate"
+import (
+	"github.com/8BITS-COLAB/ballot-box/candidate"
+	"github.com/jaswdr/faker"
+)
+
+var f = faker.New()
 
 func Up() {
-	candidates := []candidate.Candidate{
-		{
-			Name:  "John Doe",
-			Party: "Democrat",
-		},
-		{
-			Name:  "Jane Doe",
-			Party: "Democrat",
-		},
-		{
-			Name:  "John Smith",
-			Party: "Republican",
-		},
-		{
-			Name:  "Jane Smith",
-			Party: "Republican",
-		},
+	var cs []candidate.Candidate
+
+	for i := 0; i < 10; i++ {
+		cs = append(cs, candidate.Candidate{
+			Name:  f.Person().FirstName(),
+			Party: f.Lorem().Word(),
+		})
 	}
 
-	for _, c := range candidates {
+	for _, c := range cs {
 		candidate.New(c.Name, c.Party)
 	}
 }
