@@ -82,6 +82,23 @@ func Listen(port string) {
 
 		http.Handle("/", fs)
 
+		http.HandleFunc("/api/peers/", func(w http.ResponseWriter, r *http.Request) {
+			if r.Method != http.MethodGet {
+				var ps []Peer
+
+				if err := d.Find(&ps).Error; err != nil {
+					w.WriteHeader(http.StatusInternalServerError)
+					return
+				}
+
+				jason, _ := sonic.Marshal(ps)
+
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(http.StatusOK)
+				w.Write(jason)
+			}
+		})
+
 		http.HandleFunc("/api/candidates/", func(w http.ResponseWriter, r *http.Request) {
 			if r.Method == http.MethodGet {
 				code := strings.TrimPrefix(r.URL.Path, "/api/candidates/")

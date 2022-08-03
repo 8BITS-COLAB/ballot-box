@@ -23,17 +23,24 @@
   <div class="container">
     <ul id="candidates"></ul>
   </div>
+
+
+  <footer id="online-peers">
+    Loading peers...
+  </footer>
 </body>
 
 <script>
   document.addEventListener("DOMContentLoaded", async () => {
-    const response = await fetch("/api/candidates", {
+    let response = await fetch("/api/candidates", {
       headers: {
         "Content-Type": "application/json",
       }
     });
 
     const candidates = await response.json();
+
+
 
     const candidatesEl = document.querySelector("#candidates");
 
@@ -48,6 +55,12 @@
 
       candidatesEl.appendChild(li);
     });
+
+    response = await fetch("/api/peers");
+    const peers = await response.json();
+
+    const peersEl = document.querySelector("#online-peers");
+    peersEl.innerText = `${peers.length} peers online`;
   })
 </script>
 
