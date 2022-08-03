@@ -9,4 +9,10 @@
 - Run `go run ./main.go keystore` show keystore private key.
 - Run `go run ./main.go vote -c candidate_code -k secret_key` to vote for a candidate.
 - Run `go run ./main.go vote -s` candidates and votes.
-- Run `go run ./agent/agent.go` work to verify votes blockchain integrity.
+- Run `go run ./agent/agent.go` worker to verify votes blockchain integrity.
+- Run `go run ./main.go network -l port` to listen on a port.
+  > All peers will be connected to the same network and between them will be able to communicate.
+- Open you browser and go to http://localhost:port to access the home page.
+- Run `go run ./main.go config -s KEY=VALUE ` to set a configuration value.
+- Run `go run ./main.go config -g KEY ` to get a configuration value.
+- Run `go install` to substitute `go run ./main.go` to `ballot-box` command.

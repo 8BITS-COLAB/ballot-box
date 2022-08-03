@@ -1,7 +1,6 @@
 package peer
 
 import (
-	"bufio"
 	"fmt"
 	"log"
 	"net"
@@ -12,7 +11,8 @@ import (
 
 	"github.com/8BITS-COLAB/ballot-box/candidate"
 	"github.com/8BITS-COLAB/ballot-box/db"
-	"github.com/aymerick/raymond"
+	"github.com/8BITS-COLAB/ballot-box/vote"
+	"github.com/bytedance/sonic"
 )
 
 type Peer struct {
@@ -69,17 +69,6 @@ func Listen(port string) {
 	// 	}
 	// }()
 
-	source := `
-	<div class="entry" style="margin: 0 auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
-		{{#each candidates}}
-			<div class="candidate" style="padding: 10px; border: 1px solid lightgray;">
-				<div class="name">{{name}}</div>
-				<div class="party">{{party}}</div>
-				<div class="party">{{code}}</div>
-			</div>
-		{{/each}}
-	</div>
-	`
 	var cs []candidate.Candidate
 
 	if err := d.Find(&cs).Error; err != nil {
@@ -87,12 +76,53 @@ func Listen(port string) {
 	}
 
 	go func() {
-		result := raymond.MustRender(source, map[string]interface{}{
-			"candidates": cs,
+		fs := http.FileServer(http.Dir("view"))
+
+		http.Handle("/", fs)
+
+		http.HandleFunc("/api/candidates", func(w http.ResponseWriter, r *http.Request) {
+			if r.Method == http.MethodGet {
+				var cs []candidate.Candidate
+
+				if err := d.Find(&cs).Error; err != nil {
+					w.WriteHeader(http.StatusInternalServerError)
+					return
+				}
+
+				jason, _ := sonic.Marshal(cs)
+
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(http.StatusOK)
+				w.Write(jason)
+			}
 		})
 
-		http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-			w.Write([]byte(result))
+		http.HandleFunc("/api/status", func(w http.ResponseWriter, r *http.Request) {
+			s := vote.Status()
+
+			jason, _ := sonic.Marshal(s)
+
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			w.Write(jason)
+		})
+
+		http.HandleFunc("/api/votes", func(w http.ResponseWriter, r *http.Request) {
+			if r.Method == http.MethodPost {
+				var body map[string]string
+
+				if err := sonic.ConfigDefault.NewDecoder(r.Body).Decode(&body); err != nil {
+					w.WriteHeader(http.StatusBadRequest)
+					return
+				}
+
+				v := vote.New(body["code"], "xxx")
+
+				jason, _ := sonic.Marshal(v)
+
+				w.WriteHeader(http.StatusCreated)
+				w.Write(jason)
+			}
 		})
 
 		http.Serve(server, nil)
@@ -117,32 +147,31 @@ func Connect() {
 
 	for _, peer := range peers {
 		fmt.Printf("connecting to %s\n", peer.Addr)
-		conn, err := net.Dial("tcp", peer.Addr)
+		_, err := net.Dial("tcp", peer.Addr)
 		if err != nil {
-			d.Delete(&peer)
 			log.Fatalf("failed to dial: %v", err)
 		}
 
-		go func(conn net.Conn) {
-			for {
-				rw := bufio.NewReadWriter(bufio.NewReader(os.Stdin), bufio.NewWriter(conn))
+		// go func(conn net.Conn) {
+		// 	for {
+		// 		rw := bufio.NewReadWriter(bufio.NewReader(os.Stdin), bufio.NewWriter(conn))
 
-				for {
-					fmt.Printf("Enter message: ")
-					msg, err := rw.ReadString('\n')
-					if err != nil {
-						log.Fatalf("failed to read: %v", err)
-					}
+		// 		for {
+		// 			fmt.Printf("Enter message: ")
+		// 			msg, err := rw.ReadString('\n')
+		// 			if err != nil {
+		// 				log.Fatalf("failed to read: %v", err)
+		// 			}
 
-					if _, err := rw.WriteString(msg); err != nil {
-						log.Fatalf("failed to write: %v", err)
-					}
+		// 			if _, err := rw.WriteString(msg); err != nil {
+		// 				log.Fatalf("failed to write: %v", err)
+		// 			}
 
-					if err := rw.Flush(); err != nil {
-						log.Fatalf("failed to flush: %v", err)
-					}
-				}
-			}
-		}(conn)
+		// 			if err := rw.Flush(); err != nil {
+		// 				log.Fatalf("failed to flush: %v", err)
+		// 			}
+		// 		}
+		// 	}
+		// }(conn)
 	}
 }

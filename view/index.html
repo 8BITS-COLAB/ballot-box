@@ -8,7 +8,87 @@
 </head>
 
 <body>
-  <h1>Hello from a static page</h1>
+  <a href="status.html">
+    See the status of the candidates
+  </a>
+
+  <h1>Candidates</h1>
+
+  <ul id="candidates"></ul>
 </body>
+
+<script>
+  document.addEventListener("DOMContentLoaded", async () => {
+    const response = await fetch("/api/candidates");
+
+    const candidates = await response.json();
+
+    const candidatesEl = document.querySelector("#candidates");
+
+    candidates.forEach(candidate => {
+      const li = document.createElement("li");
+      li.innerText = `${candidate.name} - ${candidate.party}`;
+      li.classList.add("candidate");
+      candidatesEl.appendChild(li);
+    });
+  })
+</script>
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap');
+
+  * {
+    font-family: 'Poppins', sans-serif;
+  }
+
+  body {
+    padding: 20px;
+  }
+
+  a {
+    text-decoration: none;
+    color: #7159c1;
+    animation: fade 1s ease-in-out;
+  }
+
+  a:hover {
+    text-decoration: underline;
+  }
+
+  #candidates {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+    margin: 0 auto;
+  }
+
+  .candidate {
+    cursor: pointer;
+    box-shadow: 0 0 5px lightgray;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.2s ease;
+    animation: fade 500ms ease-in-out;
+  }
+
+  .candidate:hover {
+    box-shadow: 0 0 10px lightgray;
+  }
+
+  @keyframes fade {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+</style>
 
 </html>
