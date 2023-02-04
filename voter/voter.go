@@ -14,6 +14,8 @@ type Voter struct {
 	Registry  string `json:"registry" gorm:"uniqueIndex"`
 }
 
+var d = db.New()
+
 func New(registry string, sk string) (*Voter, *keystore.KeyStore, error) {
 	k, err := keystore.New(sk)
 
@@ -35,11 +37,6 @@ func New(registry string, sk string) (*Voter, *keystore.KeyStore, error) {
 		Registry:  registry,
 	}
 
-	d, sql := db.New()
-	d.AutoMigrate(&Voter{})
-
-	defer sql.Close()
-
 	if err := d.Create(&v).Error; err != nil {
 		log.Fatalf("failed to create voter: %s", err)
 	}
@@ -58,9 +55,6 @@ func Show(pvkStr, sk string) (*Voter, error) {
 	pemStr := keystore.PublicKeyToString(&pbk)
 
 	var v Voter
-
-	d, sql := db.New()
-	defer sql.Close()
 
 	if err := d.Where("public_key = ?", pemStr).First(&v).Error; err != nil {
 		return nil, err

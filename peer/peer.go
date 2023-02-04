@@ -21,12 +21,7 @@ type Peer struct {
 	Addr string `json:"addr" gorm:"primaryKey;uniqueIndex"`
 }
 
-func init() {
-	d, sql := db.New()
-	defer sql.Close()
-
-	d.AutoMigrate(&Peer{})
-}
+var d = db.New()
 
 func Listen(port string) {
 	server, err := net.Listen("tcp", fmt.Sprintf(":%s", port))
@@ -35,8 +30,6 @@ func Listen(port string) {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
-	d, sql := db.New()
-	defer sql.Close()
 	defer server.Close()
 
 	peer := Peer{Addr: server.Addr().String()}
@@ -211,11 +204,7 @@ func Listen(port string) {
 }
 
 func Connect() {
-	d, sql := db.New()
-	defer sql.Close()
-
 	var peers []Peer
-
 	if err := d.Find(&peers).Error; err != nil {
 		log.Fatalf("failed to find peers: %v", err)
 	}

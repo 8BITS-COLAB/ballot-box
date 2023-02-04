@@ -15,6 +15,8 @@ type Candidate struct {
 	Party string `json:"party"`
 }
 
+var d = db.New()
+
 func New(name string, party string) *Candidate {
 	h := sha1.New()
 
@@ -28,11 +30,6 @@ func New(name string, party string) *Candidate {
 		Code:  fmt.Sprintf("%x", h.Sum(nil))[:6],
 	}
 
-	d, sql := db.New()
-	d.AutoMigrate(&Candidate{})
-
-	defer sql.Close()
-
 	if err := d.Create(&c).Error; err != nil {
 		log.Fatalf("failed to create candidate: %s", err)
 	}
@@ -43,9 +40,6 @@ func New(name string, party string) *Candidate {
 func All() []Candidate {
 	var cs []Candidate
 
-	d, sql := db.New()
-	defer sql.Close()
-
 	if err := d.Find(&cs).Error; err != nil {
 		log.Fatalf("failed to get candidates: %s", err)
 	}
@@ -55,9 +49,6 @@ func All() []Candidate {
 
 func GetByCode(code string) (*Candidate, error) {
 	var c Candidate
-
-	d, sql := db.New()
-	defer sql.Close()
 
 	if err := d.Where("code = ?", code).First(&c).Error; err != nil {
 		return nil, err

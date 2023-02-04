@@ -26,6 +26,8 @@ type Vote struct {
 	Year          int                 `json:"year"`
 }
 
+var d = db.New()
+
 func calculateHash(v Vote) string {
 	var nonce int64
 	h := sha512.New()
@@ -48,11 +50,6 @@ func calculateHash(v Vote) string {
 func New(pvkStr, candidateCode, sk string) (*Vote, error) {
 	var vtr voter.Voter
 	var cnd candidate.Candidate
-
-	d, sql := db.New()
-	d.AutoMigrate(&Vote{})
-
-	defer sql.Close()
 
 	pvk, err := keystore.PrivateKeyFromString(pvkStr, sk)
 
@@ -106,11 +103,6 @@ func Status() map[string]int {
 	var vts []Vote
 	result := make(map[string]int)
 
-	d, sql := db.New()
-	d.AutoMigrate(&Vote{})
-
-	defer sql.Close()
-
 	d.Preload("Candidate").Find(&vts).Where("year = ?", time.Now().Year())
 
 	for _, vt := range vts {
@@ -123,9 +115,7 @@ func Status() map[string]int {
 func CheckIntegrity(cb func(v Vote)) {
 	var vts []Vote
 
-	d, sql := db.New()
-
-	defer sql.Close()
+	d := db.New()
 
 	d.Find(&vts)
 

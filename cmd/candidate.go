@@ -5,7 +5,7 @@ Copyright © 2022 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
-	"fmt"
+	"log"
 
 	"github.com/8BITS-COLAB/ballot-box/candidate"
 	"github.com/spf13/cobra"
@@ -23,11 +23,11 @@ var candidateCmd = &cobra.Command{
 			cs := candidate.All()
 
 			for _, c := range cs {
-				fmt.Printf("Name: %s\n", c.Name)
-				fmt.Printf("Party: %s\n", c.Party)
-				fmt.Printf("Code: %s\n", c.Code)
+				log.Printf("Name: %s\n", c.Name)
+				log.Printf("Party: %s\n", c.Party)
+				log.Printf("Code: %s\n", c.Code)
 
-				fmt.Println()
+				log.Println()
 			}
 		}
 	},
